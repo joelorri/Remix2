@@ -1,14 +1,14 @@
-import { LoaderFunction, json } from "@remix-run/node";
+// routes/dj-requests.tsx
+import { LoaderFunction, json, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { useEffect, useState } from "react";
-import { useUser } from "~/context/UserContext";
+import { useState } from "react";
 import { getSessionData } from "~/auth.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const { user, token } = await getSessionData(request);
 
   if (!user || !token || user.role !== "dj") {
-    console.log(user)
+    return redirect("/login"); // Només DJs poden accedir
   }
 
   const response = await fetch("http://localhost/api/dj/requests", {
@@ -17,16 +17,19 @@ export const loader: LoaderFunction = async ({ request }) => {
     },
   });
 
-  const requests = response.ok ? await response.json() : null;
+  if (!response.ok) {
+    return json({ error: "No s'han pogut carregar les sol·licituds." }, { status: 500 });
+  }
 
-  return json({ user, token, requests });
+  const data = await response.json();
+  return json({ user, token, requests: data });
 };
 
 type SongRequest = {
   id: number;
   song_details: string;
   comments: string | null;
-  status: string;
+  status: "pending" | "accepted" | "rejected" | "played";
   user: {
     name: string;
     email: string;
@@ -34,64 +37,46 @@ type SongRequest = {
 };
 
 export default function DjRequestsPage() {
-    const { user: loaderUser, token, requests } = useLoaderData();
-    const { user, setUser } = useUser();
-
-  const [songRequests, setSongRequests] = useState<SongRequest[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  // Assegura que el context de l'usuari estigui actualitzat
-  useEffect(() => {
-    if (loaderUser && (!user || user.id !== loaderUser.id)) {
-      setUser(loaderUser);
-    }
-  }, [loaderUser, user, setUser]);
-
-  useEffect(() => {
-    if (loaderUser && (!user || user.id !== loaderUser.id || user.role !== loaderUser.role)) {
-      setUser(loaderUser); // Sincronitza el context amb el loader
-    }
-  }, [loaderUser, user, setUser]);
+    const { requests, token } = useLoaderData<{ requests: { data: SongRequest[] }; token: string }>();
+    const [songRequests, setSongRequests] = useState<SongRequest[]>(requests.data);
   
-  const updateRequestStatus = async (id: number, newStatus: string) => {
-    try {
-      const response = await fetch(`http://localhost/api/dj/requests/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "No s'ha pogut actualitzar l'estat.");
+    const updateRequestStatus = async (id: number, action: string) => {
+      try {
+        const response = await fetch(`http://localhost/api/dj/requests/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ action }), // Enviar { action: "accepted" }
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Error al canviar l'estat.");
+        }
+  
+        // Actualitza l'estat local
+        setSongRequests((prev) =>
+          prev.map((request) =>
+            request.id === id ? { ...request, status: action } : request
+          )
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Error: No s'ha pogut actualitzar l'estat.");
       }
-
-      // Actualitza l'estat local després de la resposta exitosa
-      setSongRequests((prev) =>
-        prev.map((request) =>
-          request.id === id ? { ...request, status: newStatus } : request
-        )
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconegut.");
-    }
-  };
-
-  return (
-    <div className="py-12 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Dashboard de Sol·licituds de Cançons</h1>
-      {error && <p className="text-red-500">{error}</p>}
-
-      {songRequests.length > 0 ? (
+    };
+  
+    return (
+      <div className="py-12 max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">Gestió de Sol·licituds</h1>
         <ul className="space-y-4">
-          {songRequests.map((request) => {
+          {songRequests.slice().reverse().map((request) => { // Inverteix l'ordre
             const songDetails = JSON.parse(request.song_details);
-
+  
             return (
-              <li key={request.id} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-md">
+              <li key={request.id} className="bg-gray-600 p-4 rounded-lg shadow-md">
                 <p>
                   <strong>Cançó:</strong> {songDetails.title}
                 </p>
@@ -107,31 +92,39 @@ export default function DjRequestsPage() {
                 <p>
                   <strong>Estat:</strong> {request.status}
                 </p>
-
-                {/* Botons per acceptar o rebutjar */}
+  
+                {/* Botons per gestionar l'estat */}
                 <div className="flex space-x-4 mt-4">
-                  <button
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
-                    onClick={() => updateRequestStatus(request.id, "approved")}
-                    disabled={request.status !== "pending"}
-                  >
-                    Acceptar
-                  </button>
-                  <button
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-                    onClick={() => updateRequestStatus(request.id, "rejected")}
-                    disabled={request.status !== "pending"}
-                  >
-                    Rebutjar
-                  </button>
+                  {request.status === "pending" && (
+                    <>
+                      <button
+                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+                        onClick={() => updateRequestStatus(request.id, "accepted")}
+                      >
+                        Acceptar
+                      </button>
+                      <button
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                        onClick={() => updateRequestStatus(request.id, "rejected")}
+                      >
+                        Rebutjar
+                      </button>
+                    </>
+                  )}
+                  {request.status === "accepted" && (
+                    <button
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+                      onClick={() => updateRequestStatus(request.id, "played")}
+                    >
+                      Marcar com a Tocada
+                    </button>
+                  )}
                 </div>
               </li>
             );
           })}
         </ul>
-      ) : (
-        <p className="text-gray-500">No hi ha sol·licituds pendents.</p>
-      )}
-    </div>
-  );
-}
+      </div>
+    );
+  }
+  

@@ -35,6 +35,8 @@ export const fetchUser = async (token: string) => {
 
     return await response.json(); // Retorna les dades de l'usuari actualitzades
 };
+
+
 export async function searchProfiles(query: string, token: string) {
     try {
         const response = await fetch(
