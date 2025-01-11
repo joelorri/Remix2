@@ -1,4 +1,4 @@
-import { LoaderFunction, json } from "@remix-run/node";
+import { LoaderFunction, json, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { getSessionData } from "~/auth.server";
@@ -12,7 +12,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     throw redirect("/login"); // Redirigeix si no hi ha usuari o token
   }
 
-  const response = await fetch("http://localhost/api/requests/getRequest/", {
+  const response = await fetch("http://localhost/api/requests/getRequest", {
     headers: {
       Authorization: `Bearer ${token}`,
     },

@@ -84,7 +84,7 @@ export default function HomePage() {
   return (
     <div className="py-12 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Benvingut, {loaderUser?.name || "Usuari"}</h1>
-      <p className="text-gray-600">Rol: {loaderUser?.role || "Desconegut"}</p>
+      
 
       <div className="bg-white dark:bg-gray-900 overflow-hidden shadow-lg rounded-lg">
         <div className="p-6">

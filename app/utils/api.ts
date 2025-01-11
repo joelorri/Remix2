@@ -20,6 +20,21 @@ export async function toggleRole(token: string) {
     }
 }
 
+export const fetchUser = async (token: string) => {
+    const response = await fetch("http://localhost/api/whoami", {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Error en obtenir les dades de l'usuari.");
+    }
+
+    return await response.json(); // Retorna les dades de l'usuari actualitzades
+};
 export async function searchProfiles(query: string, token: string) {
     try {
         const response = await fetch(
