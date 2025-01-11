@@ -36,9 +36,14 @@ export default function Navbar() {
         {/* Menú */}
         <ul className="flex space-x-6 items-center">
           <li>
-            <Link to="/dashboard" className="hover:text-gray-300">
+            <Link to="/home" className="hover:text-gray-300">
               Dashboard
             </Link>
+          </li>
+          <li>
+          <Link to="/requests" className="hover:text-gray-300">
+          Cançons Demanades
+          </Link>
           </li>
           <li>
             <Link to="/profile" className="hover:text-gray-300">

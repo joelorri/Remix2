@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import DjInfo from "../components/DjInfo";
 import SearchForm from "../components/SearchForm";
 import TrackList from "../components/TrackList";
-import { useLoaderData } from "@remix-run/react";
+import {  useLoaderData, useNavigate } from "@remix-run/react";
 import { json, LoaderFunction, redirect } from "@remix-run/node";
 import { getSessionData } from "~/auth.server";
 
@@ -82,20 +82,11 @@ export default function SelectSongs() {
       setIsLoading(false);
     }
   };
+  const navigate = useNavigate(); // Inicialitza la funció de navegació
 
   const handleSubmit = async () => {
-    if (!dj) {
-      setError("No hi ha cap DJ seleccionat.");
-      return;
-    }
-  
-    if (!token) {
-      setError("Falta el token d'autenticació.");
-      return;
-    }
-  
-    if (!Object.keys(selectedTracks).length) {
-      setError("Selecciona almenys una cançó.");
+    if (!dj || !token || !Object.keys(selectedTracks).length) {
+      setError("Selecciona almenys una cançó i assegura't que estàs autenticat.");
       return;
     }
   
@@ -103,38 +94,22 @@ export default function SelectSongs() {
     setError(null);
   
     try {
-      const trackMapping: { [key: string]: number } = {}; // Map original ID -> numeric ID
-      let counter = 1;
-  
-      // Generar el mapping per `tracks` i `comments`
-      const payloadTracks = Object.keys(selectedTracks).reduce((acc, id) => {
-        const track = tracks.find((t) => t.id === id);
-        if (track) {
-          trackMapping[id] = counter; // Assignar un ID numèric incremental
-          acc[counter] = track.name; // Assignar el nom del track
-          acc[`${counter}_artist`] =
-            track.album?.artists?.[0]?.name || "Artista desconegut"; // Assignar artista
-          counter++;
-        }
-        return acc;
-      }, {} as { [key: string]: string });
-  
-      const payloadComments = Object.keys(selectedTracks).reduce((acc, id) => {
-        const numericId = trackMapping[id]; // Obtenir el numeric ID del mapping
-        if (numericId) {
-          acc[numericId] = comments[id] || "Comentari buit";
-        }
-        return acc;
-      }, {} as { [key: number]: string });
-  
       const payload = {
-        dj_id: parseInt(dj.id, 10), // Assegurar que és un número
-        songs: Object.values(trackMapping), // Array d'IDs numèrics
-        comments: payloadComments, // Comentaris amb IDs numèrics
-        tracks: payloadTracks, // Tracks amb IDs numèrics i artistes
+        dj_id: dj.id,
+        songs: Object.keys(selectedTracks).map((id, index) => index + 1), // Assigna IDs numèrics
+        comments: Object.keys(selectedTracks).reduce((acc, id, index) => {
+          acc[index + 1] = comments[id] || ""; // Assigna els comentaris amb els nous IDs
+          return acc;
+        }, {} as { [key: number]: string }),
+        tracks: Object.keys(selectedTracks).reduce((acc, id, index) => {
+          const track = tracks.find((t) => t.id === id);
+          if (track) {
+            acc[index + 1] = track.name;
+            acc[`${index + 1}_artist`] = track.album?.artists?.[0]?.name || "Desconegut";
+          }
+          return acc;
+        }, {} as { [key: string]: string }),
       };
-  
-      console.log("Payload enviat al servidor:", JSON.stringify(payload, null, 2));
   
       const response = await fetch("http://localhost/api/requests/stored", {
         method: "POST",
@@ -151,6 +126,12 @@ export default function SelectSongs() {
       }
   
       alert("Les dades s'han enviat correctament!");
+  
+      // Elimina la cookie del DJ
+      document.cookie = "selectedDj=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  
+      // Redirigeix a /home
+      navigate("/home");
     } catch (err) {
       console.error("Error al enviar les dades:", err);
       setError(
@@ -160,6 +141,7 @@ export default function SelectSongs() {
       setIsSubmitting(false);
     }
   };
+  
   
   
   

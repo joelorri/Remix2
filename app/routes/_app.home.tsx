@@ -19,7 +19,13 @@ export default function HomePage() {
   const { setUser, setToken } = useUser();
 
   const [query, setQuery] = useState(""); // Estat per al terme de cerca
-  const [results, setResults] = useState<any[]>([]); // Estat per als resultats
+  interface Profile {
+    id: string;
+    name: string;
+    email: string;
+  }
+
+  const [results, setResults] = useState<Profile[]>([]); // Estat per als resultats
   const [error, setError] = useState<string | null>(null); // Estat per als errors
   const [hasSearched, setHasSearched] = useState(false); // Estat per saber si s'ha fet cerca
 
@@ -62,7 +68,13 @@ export default function HomePage() {
   };
 
   // Funció per seleccionar un DJ i guardar les dades en una cookie
-  const handleSelectDj = (dj: any) => {
+  interface DjProfile {
+    id: string;
+    name: string;
+    email: string;
+  }
+
+  const handleSelectDj = (dj: DjProfile) => {
     const cookieValue = encodeURIComponent(JSON.stringify(dj));
     document.cookie = `selectedDj=${cookieValue}; path=/; max-age=86400`; // Guarda la cookie per 1 dia
     alert(`DJ seleccionat: ${dj.name}. Les dades s'han guardat a la cookie.`);
@@ -105,10 +117,10 @@ export default function HomePage() {
           {hasSearched && results.length > 0 ? (
             <ul className="space-y-4">
               {results.map((profile) => (
-                <li
+                <button
                   key={profile.id}
                   onClick={() => handleSelectDj(profile)}
-                  className="cursor-pointer mb-6 bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-md hover:bg-gray-200 dark:hover:bg-gray-600"
+                  className="w-full text-left cursor-pointer mb-6 bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-md hover:bg-gray-200 dark:hover:bg-gray-600"
                 >
                   <p>
                     <strong className="font-semibold">Nom:</strong> {profile.name}
@@ -116,11 +128,11 @@ export default function HomePage() {
                   <p>
                     <strong className="font-semibold">Email:</strong> {profile.email}
                   </p>
-                </li>
+                </button>
               ))}
             </ul>
           ) : (
-            hasSearched && <p className="text-gray-500">No s'han trobat resultats.</p>
+            hasSearched && <p className="text-gray-500">No s&#39;han trobat resultats.</p>
           )}
         </div>
       </div>
