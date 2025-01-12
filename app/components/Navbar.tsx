@@ -1,4 +1,4 @@
-import { Link } from "@remix-run/react";
+import { Link, useNavigate } from "@remix-run/react";
 import { useUser } from "~/context/UserContext";
 import { toggleRole } from "~/utils/api";
 import { useState } from "react";
@@ -7,7 +7,9 @@ export default function Navbar() {
   const { user, token, setUser } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
+  // Handler per canviar el rol
   const handleToggleRole = async () => {
     if (!token || !user) {
       setError("No s'ha pogut trobar l'usuari o el token.");
@@ -18,19 +20,43 @@ export default function Navbar() {
     setError(null);
 
     try {
-      const response = await toggleRole(token); // Call the API
-      const updatedRole = response?.data?.role; // Extract the updated role
+      const response = await toggleRole(token); // Crida a l'API
+      const updatedRole = response?.data?.role; // Extreu el rol actualitzat
 
       if (updatedRole) {
         setUser((prevUser) =>
           prevUser ? { ...prevUser, role: updatedRole } : null
-        ); // Update user in context
+        ); // Actualitza el context
       } else {
         throw new Error("Resposta no vàlida del servidor.");
       }
     } catch (err) {
       console.error("Error canviant el rol:", err);
       setError("No s'ha pogut canviar el rol.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handler per desconnectar
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost/api/logout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error("No s'ha pogut completar la desconnexió.");
+      }
+
+      setUser(null); // Neteja l'usuari del context
+      document.cookie = "user_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; // Elimina la cookie
+      navigate("/login"); // Redirigeix a la pàgina d'inici de sessió
+    } catch (err) {
+      console.error("Error al desconnectar-se:", err);
+      setError("No s'ha pogut desconnectar correctament.");
     } finally {
       setLoading(false);
     }
@@ -43,7 +69,7 @@ export default function Navbar() {
         <Link to="/" className="text-2xl font-bold hover:text-gray-300">
           Aplicació
         </Link>
-        <p className="text-gray-600">Rol: {user?.role || "Desconegut"}</p>
+        <p className="text-gray-200">Rol: {user?.role || "Desconegut"}</p>
         {/* Menu */}
         <ul className="flex space-x-6 items-center">
           {user?.role === "dj" && (
@@ -67,6 +93,11 @@ export default function Navbar() {
           <li>
             <Link to="/profile" className="hover:text-gray-300">
               Perfil
+            </Link>
+          </li>
+          <li>
+            <Link to="/playlist" className="hover:text-gray-300">
+              Playlist
             </Link>
           </li>
           {user && (
@@ -93,6 +124,18 @@ export default function Navbar() {
               >
                 Administració
               </Link>
+            </li>
+          )}
+          {/* Botó de logout */}
+          {user && (
+            <li>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                disabled={loading}
+              >
+                {loading ? "Sortint..." : "Logout"}
+              </button>
             </li>
           )}
         </ul>
