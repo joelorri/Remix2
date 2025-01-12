@@ -1,12 +1,15 @@
 import { LoaderFunction, ActionFunction, json, redirect } from "@remix-run/node";
-import { useLoaderData, Form, useActionData } from "@remix-run/react";
+import { useLoaderData, Form, useActionData, useNavigate } from "@remix-run/react";
 import { getSessionData } from "~/auth.server";
+import { useUser } from "~/context/UserContext";
+import { useEffect, useRef } from "react";
 
 export const loader: LoaderFunction = async ({ request }) => {
-  const { user, token } = await getSessionData(request);
+  const sessionData = await getSessionData(request);
+  const { user, token } = sessionData;
 
   if (!user || !token) {
-    throw redirect("/login"); // Redirigeix si no hi ha usuari
+    throw redirect("/login");
   }
 
   return json({ user, token });
@@ -23,7 +26,7 @@ export const action: ActionFunction = async ({ request }) => {
     throw redirect("/login");
   }
 
-  // Petició al backend per actualitzar l'usuari
+  // Petició al backend per actualitzar el perfil
   const response = await fetch("http://localhost/api/profile/update", {
     method: "POST",
     headers: {
@@ -39,12 +42,31 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   const updatedUser = await response.json();
-  return json({ user: updatedUser });
+  return json({ user: updatedUser, logout: true }); // Indica que s'ha d'executar el logout
 };
 
 export default function ProfilePage() {
-  const { user } = useLoaderData();
+  const { user } = useLoaderData<{ user: { name: string; email: string } }>();
   const actionData = useActionData();
+  const { updateUser, setToken } = useUser();
+  const previousUserRef = useRef(user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (actionData?.user && actionData?.user !== previousUserRef.current) {
+      updateUser(actionData.user);
+      previousUserRef.current = actionData.user;
+    }
+
+    // Si el backend retorna logout, mostra l'alerta i redirigeix després de 3 segons
+    if (actionData?.logout) {
+      alert("Els canvis s'han desat correctament. Se't desconnectarà ara.");
+      setToken(null); // Elimina el token del context
+      setTimeout(() => {
+        navigate("/login");
+      }, 3000);
+    }
+  }, [actionData, updateUser, setToken, navigate]);
 
   return (
     <div className="max-w-xl mx-auto mt-10">

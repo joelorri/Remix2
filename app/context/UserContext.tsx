@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
+
 type User = {
   id: number;
   name: string;
@@ -13,9 +14,10 @@ type User = {
 
 type UserContextType = {
   user: User | null;
-  token: string | null; 
+  token: string | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
+  updateUser: (updatedFields: Partial<User>) => void; // Nova funció
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -26,13 +28,19 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
+  // Funció per actualitzar valors específics de l'usuari
+  const updateUser = (updatedFields: Partial<User>) => {
+    setUser((prevUser) =>
+      prevUser ? { ...prevUser, ...updatedFields } : null
+    );
+  };
+
   return (
-    <UserContext.Provider value={{ user, token, setUser, setToken }}>
+    <UserContext.Provider value={{ user, token, setUser, setToken, updateUser }}>
       {children}
     </UserContext.Provider>
   );
 };
-
 
 export const useUser = () => {
   const context = useContext(UserContext);
