@@ -63,3 +63,13 @@ export async function logout(request: Request) {
         },
     });
 }
+
+export async function requireAdmin(request: Request) {
+  const { user, token } = await getSessionData(request);
+
+  if (!user || !token || user.super !== "admin") {
+    throw redirect("/login"); 
+  }
+
+  return { user, token }; 
+}

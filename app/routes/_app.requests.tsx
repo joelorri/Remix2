@@ -30,6 +30,7 @@ type SongRequest = {
   comments: string | null;
   status: string; // "pending", "approved", "rejected", etc.
   dj_name: string;
+  created_at: string; 
 };
 
 export default function RequestsPage() {
@@ -54,7 +55,7 @@ export default function RequestsPage() {
       setError("No s'han trobat sol·licituds per aquest usuari.");
     }
   }, [loaderUser, loaderToken, setUser, setToken, songRequests]);
-
+console.log(requests)
   return (
     <div className="py-12 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Cançons Demanades</h1>
@@ -72,37 +73,41 @@ export default function RequestsPage() {
 
       {/* Llista de sol·licituds */}
       {requests.length > 0 ? (
-        <ul className="space-y-4">
-          {requests.map((request) => {
-            const songDetails = JSON.parse(request.song_details);
+  <ul className="space-y-4">
+    {/* Reversar el orden de las solicitudes */}
+    {requests.slice().reverse().map((request) => {
+      const songDetails = JSON.parse(request.song_details);
 
-            return (
-              <li key={request.id} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-md">
-                <p>
-                  <strong>Cançó:</strong> {songDetails.title}
-                </p>
-                <p>
-                  <strong>Artista:</strong> {songDetails.artist || "Desconegut"}
-                </p>
-                <p>
-                  <strong>Comentaris:</strong> {request.comments || "Sense comentaris"}
-                </p>
-                <p>
-                  <strong>Estat:</strong> {request.status}
-                </p>
-                <p>
-                  <strong>DJ:</strong> {request.dj_name}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Sol·licitat el: {new Date(request.created_at).toLocaleString()}
-                </p>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <p className="text-gray-500">No hi ha sol·licituds registrades.</p>
-      )}
+      return (
+        <li key={request.id} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-md">
+          <p>
+            <strong>Cançó:</strong> {songDetails.title}
+          </p>
+          <p>
+            <strong>Artista:</strong> {songDetails.artist || "Desconegut"}
+          </p>
+          <p>
+            <strong>Comentaris:</strong> {request.comments || "Sense comentaris"}
+          </p>
+          <p>
+            <strong>Estat:</strong> {request.status}
+          </p>
+          <p>
+            <strong>DJ:</strong> {request.dj_name}
+          </p>
+          <p className="text-sm text-gray-500">
+            Sol·licitat el: {new Date(request.created_at).toLocaleString()}
+          </p>
+          
+        </li>
+      );
+    })}
+    
+  </ul>
+) : (
+  <p className="text-gray-500">No hi ha sol·licituds registrades.</p>
+)}
+
     </div>
   );
 }

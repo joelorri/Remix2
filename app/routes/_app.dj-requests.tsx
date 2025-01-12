@@ -59,7 +59,7 @@ export default function DjRequestsPage() {
         // Actualitza l'estat local
         setSongRequests((prev) =>
           prev.map((request) =>
-            request.id === id ? { ...request, status: action } : request
+            request.id === id ? { ...request, status: action as "pending" | "accepted" | "rejected" | "played" } : request
           )
         );
       } catch (err) {

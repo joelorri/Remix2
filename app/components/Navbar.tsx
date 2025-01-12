@@ -84,6 +84,17 @@ export default function Navbar() {
               </button>
             </li>
           )}
+          {/* Botó visible només per a admins */}
+          {user?.super === "admin" && (
+            <li>
+              <Link
+                to="/admin-dashboard"
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+              >
+                Administració
+              </Link>
+            </li>
+          )}
         </ul>
       </div>
       {error && <p className="text-red-500 text-center mt-2">{error}</p>}

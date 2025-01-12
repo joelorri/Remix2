@@ -11,11 +11,22 @@ export const loader: LoaderFunction = async ({ request }) => {
     throw redirect("/login"); // Redirigeix si no hi ha usuari o token
   }
 
-  return json({ user, token });
+  // Ensure user object includes all required properties
+  const fullUser = {
+    ...user,
+    id: user.id || "",
+    email: user.email || "",
+    email_verified_at: user.email_verified_at || null,
+    created_at: user.created_at || "",
+    updated_at: user.updated_at || "",
+    // Add other properties as needed
+  };
+
+  return json({ user: fullUser, token });
 };
 
 export default function HomePage() {
-  const { user: loaderUser, token: loaderToken } = useLoaderData();
+  const { user: loaderUser, token: loaderToken } = useLoaderData<{ user: { name: string }; token: string }>();
   const { setUser, setToken } = useUser();
 
   const [query, setQuery] = useState(""); // Estat per al terme de cerca
