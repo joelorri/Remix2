@@ -19,7 +19,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
   const data = await response.json();
 
-  const playlists = (data.playlists || []).map((playlist: any) => ({
+  const playlists = (data.playlists || []).map((playlist: Playlist) => ({
     ...playlist,
     songs: Array.isArray(playlist.songs) ? playlist.songs : [], // Garanteix que `songs` sempre sigui un array
   }));
@@ -188,7 +188,12 @@ function CreatePlaylistModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onCreate(formData as Playlist); // Crea la playlist
+    await onCreate({
+      ...formData,
+      id: Date.now(), // Temporary ID
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
     window.location.reload(); // Refresca la pàgina
   };
 
