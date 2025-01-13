@@ -1,4 +1,3 @@
-
 import { ActionFunction, json, redirect } from "@remix-run/node";
 import { Form, useActionData, useSearchParams } from "@remix-run/react";
 
@@ -86,42 +85,62 @@ export default function PasswordReset() {
         <input type="hidden" name="token" value={token} />
         <input type="hidden" name="email" value={email?.split("?")[0]} />
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium">
-            New Password
-          </label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            required
-            className="w-full px-4 py-2 border rounded-md"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="password_confirmation"
-            className="block text-sm font-medium"
-          >
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            name="password_confirmation"
-            id="password_confirmation"
-            required
-            className="w-full px-4 py-2 border rounded-md"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-        >
-          Reset Password
-        </button>
+        <FormField
+          label="New Password"
+          id="password"
+          name="password"
+          type="password"
+          placeholder="New Password"
+        />
+        <FormField
+          label="Confirm Password"
+          id="password_confirmation"
+          name="password_confirmation"
+          type="password"
+          placeholder="Confirm Password"
+        />
+        <SubmitButton label="Reset Password" />
       </Form>
     </div>
+  );
+}
+
+function FormField({
+  label,
+  id,
+  name,
+  type,
+  placeholder,
+}: {
+  label: string;
+  id: string;
+  name: string;
+  type: string;
+  placeholder: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium">
+        {label}
+      </label>
+      <input
+        type={type}
+        id={id}
+        name={name}
+        placeholder={placeholder}
+        className="w-full px-4 py-2 border rounded-md"
+      />
+    </div>
+  );
+}
+
+function SubmitButton({ label }: { label: string }) {
+  return (
+    <button
+      type="submit"
+      className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+    >
+      {label}
+    </button>
   );
 }

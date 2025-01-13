@@ -1,7 +1,7 @@
 import { LoaderFunction, json, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useUser } from "~/context/UserContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getSessionData } from "~/auth.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -11,7 +11,6 @@ export const loader: LoaderFunction = async ({ request }) => {
     throw redirect("/login"); // Redirigeix si no hi ha usuari o token
   }
 
-  // Ensure user object includes all required properties
   const fullUser = {
     ...user,
     id: user.id || "",
@@ -19,35 +18,93 @@ export const loader: LoaderFunction = async ({ request }) => {
     email_verified_at: user.email_verified_at || null,
     created_at: user.created_at || "",
     updated_at: user.updated_at || "",
-    // Add other properties as needed
   };
 
   return json({ user: fullUser, token });
 };
 
+interface Profile {
+  id: number;
+  name: string;
+  email: string;
+  email_verified_at: string | null;
+  created_at: string;
+  updated_at: string;
+  role: string;
+  super: string;
+  image: string;
+}
+
+interface DjProfile extends Profile {}
+
 export default function HomePage() {
-  const { user: loaderUser, token: loaderToken } = useLoaderData<{ user: { name: string }; token: string }>();
+  const { user: loaderUser, token: loaderToken } = useLoaderData<{
+    user: Profile;
+    token: string;
+  }>();
   const { setUser, setToken } = useUser();
 
   const [query, setQuery] = useState(""); // Estat per al terme de cerca
-  interface Profile {
-    id: string;
-    name: string;
-    email: string;
-  }
-
   const [results, setResults] = useState<Profile[]>([]); // Estat per als resultats
   const [error, setError] = useState<string | null>(null); // Estat per als errors
   const [hasSearched, setHasSearched] = useState(false); // Estat per saber si s'ha fet cerca
 
-  // Inicialitza el context amb les dades del loader
+  const getSessionFromDDBB = useCallback(async (): Promise<Profile | null> => {
+    try {
+      const response = await fetch("http://localhost/api/whoami", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${loaderToken}`,
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("No s'ha pogut obtenir la sessió de l'usuari.");
+      }
+
+      const data = await response.json();
+
+      if (!data.success || !data.user) {
+        console.error("Sessió no vàlida o incompleta:", data);
+        return null;
+      }
+
+      return data.user;
+    } catch (error) {
+      console.error("Error obtenint la sessió de l'usuari:", error);
+      return null;
+    }
+  }, [loaderToken]);
+
   useEffect(() => {
+    const syncUserWithDatabase = async () => {
+      try {
+        const dbUser = await getSessionFromDDBB();
+
+        if (!dbUser) {
+          console.error("Error: No s'ha pogut obtenir l'usuari de la BBDD.");
+          return;
+        }
+
+        if (JSON.stringify(loaderUser) !== JSON.stringify(dbUser)) {
+          console.log("Els usuaris no coincideixen. Actualitzant l'estat.");
+          setUser(dbUser); // Actualitza l'usuari amb el de la base de dades
+        } else {
+          console.log("Els usuaris coincideixen. No cal actualitzar.");
+        }
+      } catch (error) {
+        console.error("Error sincronitzant l'usuari amb la BBDD:", error);
+      }
+    };
+
+    syncUserWithDatabase();
     setUser(loaderUser);
     setToken(loaderToken);
-  }, [loaderUser, loaderToken, setUser, setToken]);
+  }, [loaderUser, loaderToken, getSessionFromDDBB, setUser, setToken]);
 
-  // Funció per fer la cerca
-  const fetchResults = async (searchQuery: string = "") => {
+  const fetchResults = useCallback(async (searchQuery: string = "") => {
     try {
       const response = await fetch(
         `http://localhost/api/profile/searchs?query=${encodeURIComponent(searchQuery)}`,
@@ -63,47 +120,33 @@ export default function HomePage() {
       }
 
       const data = await response.json();
-      setResults(data.data || []); // Actualitza els resultats
-      setError(null); // Restableix l'error
+      setResults(data.data || []);
+      setError(null);
     } catch (err) {
       console.error("Error en fer la cerca:", err);
       setError("Error en fer la cerca. Torna-ho a intentar més tard.");
     }
-  };
+  }, [loaderToken]);
 
   const handleSearch = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Cercant amb query:", query); // LOG: Comprova el valor de query
-    setHasSearched(true); // Marca que s'ha fet cerca
-    await fetchResults(query); // Passa el valor de la cerca
+    setHasSearched(true);
+    await fetchResults(query);
   };
-
-  // Funció per seleccionar un DJ i guardar les dades en una cookie
-  interface DjProfile {
-    id: string;
-    name: string;
-    email: string;
-  }
 
   const handleSelectDj = (dj: DjProfile) => {
     const cookieValue = encodeURIComponent(JSON.stringify(dj));
-    document.cookie = `selectedDj=${cookieValue}; path=/; max-age=86400`; // Guarda la cookie per 1 dia
+    document.cookie = `selectedDj=${cookieValue}; path=/; max-age=86400`;
     alert(`DJ seleccionat: ${dj.name}. Les dades s'han guardat a la cookie.`);
-    window.location.href = "/selectsongs"; // Redirigeix a /selectsongs
+    window.location.href = "/selectsongs";
   };
 
   return (
     <div className="py-12 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Benvingut, {loaderUser?.name || "Usuari"}</h1>
-      
-
       <div className="bg-white dark:bg-gray-900 overflow-hidden shadow-lg rounded-lg">
         <div className="p-6">
-          {/* Cercador */}
-          <form
-            onSubmit={handleSearch}
-            className="flex items-center space-x-4"
-          >
+          <form onSubmit={handleSearch} className="flex items-center space-x-4">
             <input
               type="text"
               value={query}
@@ -120,7 +163,6 @@ export default function HomePage() {
           </form>
           {error && <p className="text-red-500 mt-4">{error}</p>}
         </div>
-
         <div className="p-6">
           <h2 className="text-xl font-semibold mb-4">
             {hasSearched ? "Resultats de la cerca:" : "Comença una cerca per veure resultats"}

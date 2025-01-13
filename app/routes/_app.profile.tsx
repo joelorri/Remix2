@@ -2,7 +2,7 @@ import { LoaderFunction, ActionFunction, json, redirect } from "@remix-run/node"
 import { useLoaderData, Form, useActionData, useNavigate } from "@remix-run/react";
 import { getSessionData } from "~/auth.server";
 import { useUser } from "~/context/UserContext";
-import { useEffect, useRef } from "react";
+import { useEffect} from "react";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const sessionData = await getSessionData(request);
@@ -47,17 +47,11 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function ProfilePage() {
   const { user } = useLoaderData<{ user: { name: string; email: string } }>();
-  const actionData = useActionData();
-  const { updateUser, setToken } = useUser();
-  const previousUserRef = useRef(user);
+  const actionData = useActionData<{ logout?: boolean; errors?: { name?: string; email?: string } }>();
+  const { setToken } = useUser();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (actionData?.user && actionData?.user !== previousUserRef.current) {
-      updateUser(actionData.user);
-      previousUserRef.current = actionData.user;
-    }
-
     // Si el backend retorna logout, mostra l'alerta i redirigeix després de 3 segons
     if (actionData?.logout) {
       alert("Els canvis s'han desat correctament. Se't desconnectarà ara.");
@@ -66,7 +60,7 @@ export default function ProfilePage() {
         navigate("/login");
       }, 3000);
     }
-  }, [actionData, updateUser, setToken, navigate]);
+  }, [actionData, setToken, navigate]);
 
   return (
     <div className="max-w-xl mx-auto mt-10">
@@ -74,12 +68,13 @@ export default function ProfilePage() {
 
       <Form method="post" className="space-y-4">
         <div>
-          <label className="block font-medium">Nom</label>
+          <label htmlFor="name" className="block font-medium">Nom</label>
           <input
+            id="name"
             type="text"
             name="name"
             defaultValue={user.name}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
           />
           {actionData?.errors?.name && (
             <p className="text-red-500 text-sm">{actionData.errors.name}</p>
@@ -87,12 +82,12 @@ export default function ProfilePage() {
         </div>
 
         <div>
-          <label className="block font-medium">Correu electrònic</label>
+          <label htmlFor="email" className="block font-medium">Correu electrònic</label>
           <input
             type="email"
             name="email"
             defaultValue={user.email}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
           />
           {actionData?.errors?.email && (
             <p className="text-red-500 text-sm">{actionData.errors.email}</p>
@@ -101,13 +96,13 @@ export default function ProfilePage() {
 
         <button
           type="submit"
-          className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-200"
         >
           Desa canvis
         </button>
       </Form>
 
-      {actionData?.user && (
+      {!actionData?.errors && (
         <p className="mt-4 text-green-500">Perfil actualitzat correctament!</p>
       )}
     </div>
