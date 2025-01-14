@@ -19,7 +19,7 @@ export default function Thunder() {
         <nav className="flex justify-between items-center py-4 px-8 bg-opacity-70 backdrop-blur-lg">
           <div className="text-2xl font-bold">
             <img
-              src="/storage/track1.png"
+              src="../storage/track1.png"
               alt="App Logo"
               className="w-20 h-auto"
             />

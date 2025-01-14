@@ -7,9 +7,9 @@ export default function Navbar() {
   const { user, token, setUser } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Handler per canviar el rol
   const handleToggleRole = async () => {
     if (!token || !user) {
       setError("No s'ha pogut trobar l'usuari o el token.");
@@ -20,13 +20,13 @@ export default function Navbar() {
     setError(null);
 
     try {
-      const response = await toggleRole(token); // Crida a l'API
-      const updatedRole = response?.data?.role; // Extreu el rol actualitzat
+      const response = await toggleRole(token);
+      const updatedRole = response?.data?.role;
 
       if (updatedRole) {
         setUser((prevUser) =>
           prevUser ? { ...prevUser, role: updatedRole } : null
-        ); // Actualitza el context
+        );
       } else {
         throw new Error("Resposta no vàlida del servidor.");
       }
@@ -38,7 +38,6 @@ export default function Navbar() {
     }
   };
 
-  // Handler per desconnectar
   const handleLogout = async () => {
     try {
       setLoading(true);
@@ -51,9 +50,9 @@ export default function Navbar() {
         throw new Error("No s'ha pogut completar la desconnexió.");
       }
 
-      setUser(null); // Neteja l'usuari del context
-      document.cookie = "user_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; // Elimina la cookie
-      navigate("/login"); // Redirigeix a la pàgina d'inici de sessió
+      setUser(null);
+      document.cookie = "user_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      navigate("/login");
     } catch (err) {
       console.error("Error al desconnectar-se:", err);
       setError("No s'ha pogut desconnectar correctament.");
@@ -63,84 +62,92 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-blue-600 text-white py-4">
+    <nav className="bg-gray-900 text-white py-4 shadow-md">
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="text-2xl font-bold hover:text-gray-300">
           Aplicació
         </Link>
-        <p className="text-gray-200">Rol: {user?.role || "Desconegut"}</p>
-        {/* Menu */}
-        <ul className="flex space-x-6 items-center">
-          {user?.role === "dj" && (
-            <Link
-              to="/dj-requests"
-              className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-md"
-            >
-              Dashboard DJ
-            </Link>
-          )}
+
+        {/* Botó del menú per a mòbils */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="md:hidden text-white hover:text-gray-300 focus:outline-none"
+          aria-label="Toggle Menu"
+        >
+          ☰
+        </button>
+
+        {/* Links de navegació */}
+        <ul
+          className={`${
+            menuOpen ? "block" : "hidden"
+          } absolute top-16 left-0 w-full bg-gray-900 md:static md:flex md:items-center md:space-x-6 text-center md:w-auto`}
+        >
           <li>
-            <Link to="/home" className="hover:text-gray-300">
+            <Link
+              to="/home"
+              className="block py-2 md:py-0 hover:text-gray-300"
+            >
               Dashboard
             </Link>
           </li>
           <li>
-            <Link to="/requests" className="hover:text-gray-300">
+            <Link
+              to="/requests"
+              className="block py-2 md:py-0 hover:text-gray-300"
+            >
               Cançons Demanades
             </Link>
           </li>
           <li>
-            <Link to="/profile" className="hover:text-gray-300">
+            <Link
+              to="/profile"
+              className="block py-2 md:py-0 hover:text-gray-300"
+            >
               Perfil
             </Link>
           </li>
           <li>
-            <Link to="/playlist" className="hover:text-gray-300">
+            <Link
+              to="/playlist"
+              className="block py-2 md:py-0 hover:text-gray-300"
+            >
               Playlist
             </Link>
           </li>
-          {user && (
+          {user?.role === "dj" && (
             <li>
               <button
                 onClick={handleToggleRole}
-                className={`bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 ${
-                  loading ? "cursor-not-allowed" : ""
-                }`}
-                disabled={loading}
+                className="bg-gray-800 px-4 py-2 rounded hover:bg-gray-700 w-full md:w-auto"
               >
-                {loading
-                  ? "Canviant..."
-                  : `Canvia a ${user.role === "dj" ? "user" : "dj"}`}
+                Canvia a {user.role === "dj" ? "user" : "dj"}
               </button>
             </li>
           )}
-          {/* Botó visible només per a admins */}
           {user?.super === "admin" && (
             <li>
               <Link
                 to="/admin-dashboard"
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                className="bg-red-600 px-4 py-2 rounded hover:bg-red-700 block md:inline-block w-full md:w-auto"
               >
                 Administració
               </Link>
             </li>
           )}
-          {/* Botó de logout */}
           {user && (
             <li>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-                disabled={loading}
+                className="bg-red-600 px-4 py-2 rounded hover:bg-red-700 block md:inline-block w-full md:w-auto"
               >
-                {loading ? "Sortint..." : "Logout"}
+                Logout
               </button>
             </li>
           )}
         </ul>
       </div>
-      {error && <p className="text-red-500 text-center mt-2">{error}</p>}
     </nav>
   );
 }
