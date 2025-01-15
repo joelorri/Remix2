@@ -1,6 +1,6 @@
 import { useLoaderData } from "@remix-run/react";
 import { useState } from "react";
-import { loader } from "~/djRequests.server";
+import { loader } from "~/server/djRequests.server";
 import { SongRequest, updateRequestStatus } from "~/utils/djRequests.utils";
 
 

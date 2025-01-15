@@ -1,7 +1,7 @@
 import { ActionFunction, redirect } from "@remix-run/node";
 import { useNavigate } from "@remix-run/react";
 import { useState } from "react";
-import { requireAdmin } from "~/auth.server";
+import { requireAdmin } from "~/server/auth.server";
 
 export const action: ActionFunction = async ({ request }) => {
   const { token } = await requireAdmin(request);

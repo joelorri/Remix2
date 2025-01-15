@@ -1,6 +1,6 @@
 import { useLoaderData, Form, useNavigate } from "@remix-run/react";
 import { useState } from "react";
-import { loader, action } from '../editPlaylist.server';
+import { loader, action } from '../server/editPlaylist.server';
 
 
 export { loader, action };

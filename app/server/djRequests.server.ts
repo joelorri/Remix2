@@ -1,5 +1,5 @@
 import { LoaderFunction, json, redirect } from "@remix-run/node";
-import { getSessionData } from "~/auth.server";
+import { getSessionData } from "~/server/auth.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
     const { token } = await getSessionData(request);

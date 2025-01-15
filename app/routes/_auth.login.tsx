@@ -3,7 +3,7 @@ import LoginForm from "~/components/LoginForm";
 import AuthContainer from "~/components/AuthContainer";
 import type { ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { login } from "~/auth.server";
+import { login } from "~/server/auth.server";
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();

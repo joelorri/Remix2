@@ -1,6 +1,6 @@
 import { LoaderFunction, json } from '@remix-run/node';
 import { getSessionData } from "./auth.server";
-import { Playlist } from './utils/Interfaces';
+import { Playlist } from '../utils/Interfaces';
 
 
 export async function fetchPlaylist(id: string, token: string) {

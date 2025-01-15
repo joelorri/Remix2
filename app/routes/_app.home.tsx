@@ -1,7 +1,7 @@
 import { LoaderFunction, json, redirect } from "@remix-run/node";
 import { Link, useLoaderData, useNavigate } from "@remix-run/react";
 import { useState } from "react";
-import { getSessionData } from "~/auth.server";
+import { getSessionData } from "~/server/auth.server";
 import { Profile, User } from "~/utils/Interfaces";
 
 export const loader: LoaderFunction = async ({ request }) => {

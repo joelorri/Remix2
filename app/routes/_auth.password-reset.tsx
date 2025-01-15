@@ -1,6 +1,6 @@
 import { ActionFunction, json } from "@remix-run/node";
 import { Form, useActionData, useSearchParams } from "@remix-run/react";
-import { resetPassword } from "~/auth.server";
+import { resetPassword } from "~/server/auth.server";
 
 import FormField from "~/components/FormField";
 import SubmitButton from "~/components/SubmitButton";

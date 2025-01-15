@@ -1,5 +1,5 @@
 import { createCookieSessionStorage, LoaderFunction, redirect, json } from '@remix-run/node';
-import { PasswordResetData, RegisterData } from './utils/Interfaces';
+import { PasswordResetData, RegisterData } from '../utils/Interfaces';
 
 export const sessionStorage = createCookieSessionStorage({
   cookie: {

@@ -1,8 +1,8 @@
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { useState, useEffect } from "react";
 import CreatePlaylistModal from "~/components/CreatePlaylistModal";
-import { loader } from "../playlist.server";
-import { Playlist } from "~/editPlaylist.server";
+import { loader } from "../server/playlist.server";
+import { Playlist } from "~/utils/Interfaces";
 
 export { loader };
 

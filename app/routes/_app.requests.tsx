@@ -1,7 +1,7 @@
 import { useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { useUser } from "~/context/UserContext";
-import { loader } from '../requests.server';
+import { loader } from '../server/requests.server';
 
 
 export { loader };

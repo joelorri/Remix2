@@ -6,7 +6,7 @@ import {
 } from "@remix-run/react";
 import { useEffect } from "react";
 import { useUser } from "~/context/UserContext";
-import { loader, action } from "../profile.server";
+import { loader, action } from "../server/profile.server";
 
 export { loader, action };
 

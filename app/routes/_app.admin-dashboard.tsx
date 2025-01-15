@@ -2,8 +2,9 @@ import { useLoaderData, useNavigate } from "@remix-run/react";
 import { useState } from "react";
 
 import EditUserModal from "~/components/EditUserModal";
-import { loader } from '../admin.server';
-import { deleteUser, updateUser, User } from "~/utils/adminUsers.utils";
+import { loader } from '../server/admin.server';
+import { deleteUser, updateUser} from "~/utils/adminUsers.utils";
+import { User } from "~/utils/Interfaces";
 
 export { loader };
 

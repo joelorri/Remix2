@@ -1,4 +1,4 @@
-import { SessionResponse } from "./utils/Interfaces";
+import { SessionResponse } from "../utils/Interfaces";
 
 export async function getSessionFromDDBB(): Promise<SessionResponse | null> {
     try {

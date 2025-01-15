@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@remix-run/react";
 import { useState } from "react";
-import { registerUser } from "~/auth.server";
+import { registerUser } from "~/server/auth.server";
 
 
 export default function Register() {

@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import DjInfo from "../components/DjInfo";
 import SearchForm from "../components/SearchForm";
 import TrackList from "../components/TrackList";
-import {  useLoaderData, useNavigate } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import { json, LoaderFunction, redirect } from "@remix-run/node";
-import { getSessionData } from "~/auth.server";
+import { getSessionData } from "~/server/auth.server";
+import { DjProfile, Track } from "~/utils/Interfaces";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const { user, token } = await getSessionData(request);
@@ -16,25 +17,27 @@ export const loader: LoaderFunction = async ({ request }) => {
   return json({ user, token });
 };
 
-
-
 export default function SelectSongs() {
-  const { token } = useLoaderData<{ user: Dj; token: string }>();
+  const { token } = useLoaderData<{ user: DjProfile; token: string }>();
 
-  const [dj, setDj] = useState<Dj | null>(null);
+  const [dj, setDj] = useState<DjProfile | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
-  const [selectedTracks, setSelectedTracks] = useState<{ [id: string]: string }>({});
+  const [selectedTracks, setSelectedTracks] = useState<{
+    [id: string]: string;
+  }>({});
   const [comments, setComments] = useState<{ [id: string]: string }>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const cookies = document.cookie.split("; ").reduce((acc: { [key: string]: string }, cookie) => {
-      const [name, value] = cookie.split("=");
-      acc[name] = decodeURIComponent(value);
-      return acc;
-    }, {});
+    const cookies = document.cookie
+      .split("; ")
+      .reduce((acc: { [key: string]: string }, cookie) => {
+        const [name, value] = cookie.split("=");
+        acc[name] = decodeURIComponent(value);
+        return acc;
+      }, {});
 
     if (cookies.selectedDj) {
       setDj(JSON.parse(cookies.selectedDj));
@@ -50,13 +53,18 @@ export default function SelectSongs() {
     try {
       setIsLoading(true);
       setError(null);
-console.log(token)
-      const response = await fetch(`http://localhost/api/spotify/search?query=${encodeURIComponent(query)}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      console.log(token);
+      const response = await fetch(
+        `http://localhost/api/spotify/search?query=${encodeURIComponent(
+          query
+        )}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("No s'han trobat resultats per la cerca.");
@@ -75,13 +83,15 @@ console.log(token)
 
   const handleSubmit = async () => {
     if (!dj || !token || !Object.keys(selectedTracks).length) {
-      setError("Selecciona almenys una cançó i assegura't que estàs autenticat.");
+      setError(
+        "Selecciona almenys una cançó i assegura't que estàs autenticat."
+      );
       return;
     }
-  
+
     setIsSubmitting(true);
     setError(null);
-  
+
     try {
       const payload = {
         dj_id: dj.id,
@@ -94,12 +104,18 @@ console.log(token)
           const track = tracks.find((t) => t.id === id);
           if (track) {
             acc[index + 1] = track.name;
-            acc[`${index + 1}_artist`] = track.album?.artists?.[0]?.name || "Desconegut";
+            acc[`${index + 1}_artist`] =
+              track.album &&
+              typeof track.album === "object" &&
+              "artists" in track.album
+                ? (track.album as { artists: { name: string }[] }).artists[0]
+                    ?.name || "Desconegut"
+                : "Desconegut";
           }
           return acc;
         }, {} as { [key: string]: string }),
       };
-  
+
       const response = await fetch("http://localhost/api/requests/stored", {
         method: "POST",
         headers: {
@@ -108,17 +124,18 @@ console.log(token)
         },
         body: JSON.stringify(payload),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Error en enviar les dades.");
       }
-  
+
       alert("Les dades s'han enviat correctament!");
-  
+
       // Elimina la cookie del DJ
-      document.cookie = "selectedDj=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  
+      document.cookie =
+        "selectedDj=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
       // Redirigeix a /home
       navigate("/home");
     } catch (err) {
@@ -130,17 +147,16 @@ console.log(token)
       setIsSubmitting(false);
     }
   };
-  
-  
-  
-  
-  
 
   return (
     <div className="py-12 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Selecciona Cançons</h1>
       {error && <p className="text-red-500">{error}</p>}
-      {dj ? <DjInfo dj={dj} /> : <p className="text-gray-500">No s&apos;ha seleccionat cap DJ.</p>}
+      {dj ? (
+        <DjInfo dj={dj} />
+      ) : (
+        <p className="text-gray-500">No s&apos;ha seleccionat cap DJ.</p>
+      )}
       <SearchForm onSearch={handleSearch} isLoading={isLoading} />
       {tracks.length > 0 && (
         <TrackList
@@ -155,13 +171,17 @@ console.log(token)
               return updated;
             })
           }
-          onCommentChange={(trackId, comment) => setComments((prev) => ({ ...prev, [trackId]: comment }))}
+          onCommentChange={(trackId, comment) =>
+            setComments((prev) => ({ ...prev, [trackId]: comment }))
+          }
         />
       )}
       <button
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className={`mt-4 px-6 py-2 ${isSubmitting ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"} text-white rounded-md`}
+        className={`mt-4 px-6 py-2 ${
+          isSubmitting ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
+        } text-white rounded-md`}
       >
         {isSubmitting ? "Enviant..." : "Enviar"}
       </button>

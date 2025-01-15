@@ -2,7 +2,7 @@ import { Form, useActionData, Link } from "@remix-run/react";
 import { ActionFunction, json } from "@remix-run/node";
 import FormField from "~/components/FormField";
 import SubmitButton from "~/components/SubmitButton";
-import { sendForgotPasswordEmail } from "~/auth.server";
+import { sendForgotPasswordEmail } from "~/server/auth.server";
 
 export const action: ActionFunction = async ({ request }) => {
   try {

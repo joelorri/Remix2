@@ -1,9 +1,4 @@
-export type User = {
-    id: number;
-    name: string;
-    email: string;
-    super: string;
-};
+import { User } from "./Interfaces";
 
 // Delete a user
 export const deleteUser = async (userId: number, token: string): Promise<void> => {
