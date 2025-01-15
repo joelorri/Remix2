@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "@remix-run/react";
 import { useState } from "react";
+import { registerUser } from "~/auth.server";
+
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -25,24 +27,11 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al registrar-se.");
-      }
-
-      setSuccessMessage("Registre complet! Redirigint...");
-      setTimeout(() => navigate("/login"), 2000); // Redirigeix a la pàgina d'inici de sessió
+      await registerUser(formData);
+      setSuccessMessage("Registration complete! Redirecting...");
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      console.error("Error al registrar-se:", err);
-      setError(
-        err instanceof Error ? err.message : "Hi ha hagut un error desconegut."
-      );
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setLoading(false);
     }
@@ -52,78 +41,42 @@ export default function Register() {
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-gray-100 p-4">
       <div className="w-full max-w-md p-6 bg-gray-800 shadow-md rounded-lg">
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-100">
-          Registra&apos;t
+          Register
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nom complet */}
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-              Nom complet
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              placeholder="Nom complet"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full p-2 mt-1 border border-gray-600 rounded bg-gray-700 text-gray-100 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
+          <InputField
+            id="name"
+            label="Full Name"
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+          />
+          <InputField
+            id="email"
+            label="Email Address"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+          />
+          <InputField
+            id="password"
+            label="Password"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+          />
+          <InputField
+            id="password_confirmation"
+            label="Confirm Password"
+            type="password"
+            name="password_confirmation"
+            value={formData.password_confirmation}
+            onChange={handleChange}
+          />
 
-          {/* Correu electrònic */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-              Correu electrònic
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              placeholder="Correu electrònic"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full p-2 mt-1 border border-gray-600 rounded bg-gray-700 text-gray-100 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-
-          {/* Contrasenya */}
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-              Contrasenya
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Contrasenya"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full p-2 mt-1 border border-gray-600 rounded bg-gray-700 text-gray-100 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-
-          {/* Confirmació de contrasenya */}
-          <div>
-            <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-300">
-              Confirma la contrasenya
-            </label>
-            <input
-              type="password"
-              id="password_confirmation"
-              name="password_confirmation"
-              placeholder="Confirma la contrasenya"
-              value={formData.password_confirmation}
-              onChange={handleChange}
-              className="w-full p-2 mt-1 border border-gray-600 rounded bg-gray-700 text-gray-100 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-
-          {/* Botó d'enviament */}
           <button
             type="submit"
             className={`w-full py-2 text-white rounded ${
@@ -131,23 +84,50 @@ export default function Register() {
             }`}
             disabled={loading}
           >
-            {loading ? "Processant..." : "Registra't"}
+            {loading ? "Processing..." : "Register"}
           </button>
         </form>
-
-        {/* Enllaç per iniciar sessió */}
         <div className="text-center mt-4">
           <Link to="/login" className="text-blue-400 hover:underline">
-            Ja tens compte? Inicia sessió
+            Already have an account? Log in
           </Link>
         </div>
-
-        {/* Missatge d'error */}
         {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-
-        {/* Missatge d'èxit */}
         {successMessage && <p className="text-green-500 text-center mt-4">{successMessage}</p>}
       </div>
+    </div>
+  );
+}
+
+function InputField({
+  id,
+  label,
+  type,
+  name,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  type: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-gray-300">
+        {label}
+      </label>
+      <input
+        id={id}
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full p-2 mt-1 border border-gray-600 rounded bg-gray-700 text-gray-100 focus:ring-blue-500 focus:border-blue-500"
+        required
+      />
     </div>
   );
 }

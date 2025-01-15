@@ -27,14 +27,10 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function UserRatingsPage() {
-  interface Rating {
-    id: string;
-    rating: number;
-    comment: string;
-    created_at: string;
-  }
-
-  const { ratings, token } = useLoaderData<{ ratings: Rating[]; token: string }>();
+  const { ratings, token } = useLoaderData<{
+    ratings: Rating[];
+    token: string;
+  }>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     dj_id: "",
@@ -65,7 +61,9 @@ export default function UserRatingsPage() {
   const handleSearch = async () => {
     try {
       const response = await fetch(
-        `http://localhost/api/profile/searchs?query=${encodeURIComponent(searchQuery)}`,
+        `http://localhost/api/profile/searchs?query=${encodeURIComponent(
+          searchQuery
+        )}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -85,18 +83,16 @@ export default function UserRatingsPage() {
     }
   };
 
-  interface DjProfile {
-    id: string;
-    name: string;
-    email: string;
-  }
+
 
   const handleSelectDj = (dj: DjProfile) => {
     setSelectedDj(dj);
     setFormData((prev) => ({ ...prev, dj_id: dj.id }));
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -127,7 +123,9 @@ export default function UserRatingsPage() {
       setSuccess(true);
       setTimeout(() => window.location.reload(), 2000); // Refresca la pàgina després de 2 segons
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Hi ha hagut un error desconegut.");
+      setError(
+        err instanceof Error ? err.message : "Hi ha hagut un error desconegut."
+      );
     }
   };
 
@@ -136,19 +134,26 @@ export default function UserRatingsPage() {
       <h1 className="text-2xl font-bold mb-4">Les Teves Valoracions</h1>
 
       {ratings.length > 0 ? (
-        ratings.map((rating: { id: string; rating: number; comment: string; created_at: string }) => (
-          <div key={rating.id} className="mb-4 p-4 border rounded">
-            <p>
-              <strong>Rating:</strong> {rating.rating}
-            </p>
-            <p>
-              <strong>Comentari:</strong> {rating.comment}
-            </p>
-            <p className="text-gray-500 text-sm">
-              Publicat: {new Date(rating.created_at).toLocaleString()}
-            </p>
-          </div>
-        ))
+        ratings.map(
+          (rating: {
+            id: string;
+            rating: number;
+            comment: string;
+            created_at: string;
+          }) => (
+            <div key={rating.id} className="mb-4 p-4 border rounded">
+              <p>
+                <strong>Rating:</strong> {rating.rating}
+              </p>
+              <p>
+                <strong>Comentari:</strong> {rating.comment}
+              </p>
+              <p className="text-gray-500 text-sm">
+                Publicat: {new Date(rating.created_at).toLocaleString()}
+              </p>
+            </div>
+          )
+        )
       ) : (
         <p>No has fet cap valoració encara.</p>
       )}
@@ -165,7 +170,11 @@ export default function UserRatingsPage() {
           <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
             <h2 className="text-xl font-bold mb-4">Nova Valoració</h2>
             {error && <p className="text-red-500 mb-4">{error}</p>}
-            {success && <p className="text-green-500 mb-4">Valoració creada correctament!</p>}
+            {success && (
+              <p className="text-green-500 mb-4">
+                Valoració creada correctament!
+              </p>
+            )}
 
             {!selectedDj ? (
               <div>
@@ -185,23 +194,33 @@ export default function UserRatingsPage() {
                 <div className="p-6 mt-4">
                   {hasSearched && results.length > 0 ? (
                     <ul className="space-y-4">
-                      {results.map((profile: { id: string; name: string; email: string }) => (
-                        <button
-                          key={profile.id}
-                          onClick={() => handleSelectDj(profile)}
-                          className="w-full text-left cursor-pointer bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-md hover:bg-gray-200 dark:hover:bg-gray-600"
-                        >
-                          <p>
-                            <strong>Nom:</strong> {profile.name}
-                          </p>
-                          <p>
-                            <strong>Email:</strong> {profile.email}
-                          </p>
-                        </button>
-                      ))}
+                      {results.map(
+                        (profile: {
+                          id: string;
+                          name: string;
+                          email: string;
+                        }) => (
+                          <button
+                            key={profile.id}
+                            onClick={() => handleSelectDj(profile)}
+                            className="w-full text-left cursor-pointer bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-md hover:bg-gray-200 dark:hover:bg-gray-600"
+                          >
+                            <p>
+                              <strong>Nom:</strong> {profile.name}
+                            </p>
+                            <p>
+                              <strong>Email:</strong> {profile.email}
+                            </p>
+                          </button>
+                        )
+                      )}
                     </ul>
                   ) : (
-                    hasSearched && <p className="text-gray-500">No s&#39;han trobat resultats.</p>
+                    hasSearched && (
+                      <p className="text-gray-500">
+                        No s&#39;han trobat resultats.
+                      </p>
+                    )
                   )}
                 </div>
               </div>
@@ -227,7 +246,10 @@ export default function UserRatingsPage() {
                   />
                 </div>
                 <div className="mb-4">
-                  <label htmlFor="comment" className="block text-sm font-medium">
+                  <label
+                    htmlFor="comment"
+                    className="block text-sm font-medium"
+                  >
                     Comentari
                   </label>
                   <textarea

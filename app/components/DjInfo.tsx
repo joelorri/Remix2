@@ -1,12 +1,7 @@
 import React from "react";
+import { DjInfoProps } from "~/utils/Interfaces";
 
-interface DjInfoProps {
-  dj: {
-    id: string;
-    name: string;
-    email: string;
-  };
-}
+
 
 const DjInfo: React.FC<DjInfoProps> = ({ dj }) => {
   return (

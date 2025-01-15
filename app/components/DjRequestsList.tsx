@@ -1,15 +1,6 @@
 import { useLoaderData } from "@remix-run/react";
+import { SongRequest } from "~/utils/Interfaces";
 
-type SongRequest = {
-  id: number;
-  song_details: string;
-  comments: string | null;
-  status: string;
-  user: {
-    name: string;
-    email: string;
-  };
-};
 
 export default function DjRequestsList() {
   const { requests } = useLoaderData<{ requests: { data: SongRequest[] } }>();

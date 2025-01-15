@@ -1,31 +1,11 @@
-import { LoaderFunction, json } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { useState } from "react";
-import { requireAdmin } from "~/auth.server";
 
-export const loader: LoaderFunction = async ({ request }) => {
-  const { user, token } = await requireAdmin(request);
+import EditUserModal from "~/components/EditUserModal";
+import { loader } from '../admin.server';
+import { deleteUser, updateUser, User } from "~/utils/adminUsers.utils";
 
-  const response = await fetch("http://localhost/api/admin/users", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("No s'han pogut carregar els usuaris.");
-  }
-
-  const users = await response.json();
-  return json({ user, token, users: users.data });
-};
-
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  super: string;
-};
+export { loader };
 
 export default function AdminUsersPage() {
   const { users, token } = useLoaderData<{ users: User[]; token: string }>();
@@ -37,48 +17,23 @@ export default function AdminUsersPage() {
     if (!confirm("Estàs segur que vols eliminar aquest usuari?")) return;
 
     try {
-      const response = await fetch(`http://localhost/api/admin/users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("No s'ha pogut eliminar l'usuari.");
-      }
-
+      await deleteUser(userId, token);
       alert("Usuari eliminat correctament.");
       setUserList((prev) => prev.filter((user) => user.id !== userId));
-    } catch (error) {
+    } catch {
       alert("Error eliminant l'usuari.");
     }
   };
 
   const handleEdit = async (updatedUser: User) => {
     try {
-      const response = await fetch(`http://localhost/api/admin/users/${updatedUser.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedUser),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update user.");
-      }
-
+      const updated = await updateUser(updatedUser, token);
       alert("Usuari actualitzat correctament.");
       setUserList((prev) =>
-        prev.map((user) =>
-          user.id === updatedUser.id ? updatedUser : user
-        )
+        prev.map((user) => (user.id === updated.id ? updated : user))
       );
       setSelectedUser(null); // Close the edit form
-    } catch (err) {
-      console.error("Error updating user:", err);
+    } catch {
       alert("Error actualitzant l'usuari.");
     }
   };
@@ -133,90 +88,6 @@ export default function AdminUsersPage() {
           onSave={handleEdit}
         />
       )}
-    </div>
-  );
-}
-
-type EditUserModalProps = {
-  user: User;
-  onClose: () => void;
-  onSave: (user: User) => void;
-};
-
-function EditUserModal({ user, onClose, onSave }: EditUserModalProps) {
-  const [formData, setFormData] = useState(user);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name || !formData.email) {
-      alert("Nom i email són obligatoris.");
-      return;
-    }
-    onSave(formData);
-  };
-
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-gray-100 p-6 rounded-lg shadow-md max-w-md w-full">
-        <h1 className="text-xl font-bold mb-4">Editar Usuari</h1>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium">Nom</label>
-            <input
-              id="name"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-md"
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium">Email</label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-md"
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="role" className="block text-sm font-medium">Rol</label>
-            <select
-              id="role"
-              name="super"
-              value={formData.super}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-md"
-            >
-              <option value="user">Usuari</option>
-              <option value="admin">Administrador</option>
-            </select>
-          </div>
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
-            >
-              Cancel·lar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Desar
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

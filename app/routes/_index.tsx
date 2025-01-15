@@ -19,7 +19,7 @@ export default function Thunder() {
         <nav className="flex justify-between items-center py-4 px-8 bg-opacity-70 backdrop-blur-lg">
           <div className="text-2xl font-bold">
             <img
-              src="../storage/track1.png"
+              src="/app/storage/track1.png"
               alt="App Logo"
               className="w-20 h-auto"
             />
@@ -42,11 +42,13 @@ export default function Thunder() {
 
         {/* Main Section */}
         <main className="flex-grow flex items-center justify-center">
-          <section className="flex flex-col-reverse md:flex-row px-4 md:px-16 py-16 w-full max-w-6xl">
+          <section className="flex flex-col md:flex-row px-4 md:px-16 py-16 w-full max-w-6xl">
             {/* Hero Text */}
-            <div className="md:w-1/2 space-y-6 md:text-left mb-8 md:mb-0">
+            <div className="md:w-1/2 space-y-6 text-center md:text-left order-1 md:order-none mb-8 md:mb-0">
               <h1 className="text-4xl md:text-5xl font-extrabold text-white">
-                <span className="block text-2xl md:text-3xl">Request the Beat</span>
+                <span className="block text-2xl md:text-3xl">
+                  Request the Beat
+                </span>
                 <span className="text-4xl md:text-5xl">Feel the Thunder</span>
               </h1>
               <p className="text-gray-200">
@@ -56,7 +58,7 @@ export default function Thunder() {
             </div>
 
             {/* Form Section */}
-            <div className="md:w-1/2 space-y-6">
+            <div className="md:w-1/2 space-y-6 order-2 md:order-none">
               <Form method="post" action="/register" className="space-y-6">
                 {/* Name */}
                 <div>

@@ -1,9 +1,5 @@
 import React, { useState } from "react";
-
-interface SearchFormProps {
-  onSearch: (query: string) => void;
-  isLoading: boolean;
-}
+import { SearchFormProps } from "~/utils/Interfaces";
 
 const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) => {
   const [query, setQuery] = useState("");

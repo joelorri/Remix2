@@ -16,18 +16,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   return json({ user, token });
 };
 
-interface Dj {
-  id: string;
-  name: string;
-  email: string;
-}
 
-interface Track {
-  id: string;
-  name: string;
-  artist: string;
-  album: string;
-}
 
 export default function SelectSongs() {
   const { token } = useLoaderData<{ user: Dj; token: string }>();
@@ -61,7 +50,7 @@ export default function SelectSongs() {
     try {
       setIsLoading(true);
       setError(null);
-
+console.log(token)
       const response = await fetch(`http://localhost/api/spotify/search?query=${encodeURIComponent(query)}`, {
         method: "GET",
         headers: {

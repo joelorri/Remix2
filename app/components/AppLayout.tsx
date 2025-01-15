@@ -3,7 +3,12 @@ import Navbar from "~/components/Navbar";
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
+    <div
+      className="min-h-screen flex flex-col text-white"
+      style={{
+        background: "linear-gradient(to bottom, #000428, #004e77, #000000)",
+      }}
+    >
       {/* Navbar */}
       <Navbar />
 

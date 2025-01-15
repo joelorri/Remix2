@@ -1,61 +1,28 @@
-import { LoaderFunction, ActionFunction, json, redirect } from "@remix-run/node";
-import { useLoaderData, Form, useActionData, useNavigate } from "@remix-run/react";
-import { getSessionData } from "~/auth.server";
+import {
+  useLoaderData,
+  Form,
+  useActionData,
+  useNavigate,
+} from "@remix-run/react";
+import { useEffect } from "react";
 import { useUser } from "~/context/UserContext";
-import { useEffect} from "react";
+import { loader, action } from "../profile.server";
 
-export const loader: LoaderFunction = async ({ request }) => {
-  const sessionData = await getSessionData(request);
-  const { user, token } = sessionData;
-
-  if (!user || !token) {
-    throw redirect("/login");
-  }
-
-  return json({ user, token });
-};
-
-export const action: ActionFunction = async ({ request }) => {
-  const formData = await request.formData();
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-
-  const { token } = await getSessionData(request);
-
-  if (!token) {
-    throw redirect("/login");
-  }
-
-  // Petició al backend per actualitzar el perfil
-  const response = await fetch("http://localhost/api/profile/update", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ name, email }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    return json({ errors: errorData.errors }, { status: response.status });
-  }
-
-  const updatedUser = await response.json();
-  return json({ user: updatedUser, logout: true }); // Indica que s'ha d'executar el logout
-};
+export { loader, action };
 
 export default function ProfilePage() {
   const { user } = useLoaderData<{ user: { name: string; email: string } }>();
-  const actionData = useActionData<{ logout?: boolean; errors?: { name?: string; email?: string } }>();
+  const actionData = useActionData<{
+    logout?: boolean;
+    errors?: { name?: string; email?: string };
+  }>();
   const { setToken } = useUser();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Si el backend retorna logout, mostra l'alerta i redirigeix després de 3 segons
     if (actionData?.logout) {
       alert("Els canvis s'han desat correctament. Se't desconnectarà ara.");
-      setToken(null); // Elimina el token del context
+      setToken(null);
       setTimeout(() => {
         navigate("/login");
       }, 3000);
@@ -67,32 +34,21 @@ export default function ProfilePage() {
       <h1 className="text-3xl font-bold mb-6">Edita el teu perfil</h1>
 
       <Form method="post" className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block font-medium">Nom</label>
-          <input
-            id="name"
-            type="text"
-            name="name"
-            defaultValue={user.name}
-            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {actionData?.errors?.name && (
-            <p className="text-red-500 text-sm">{actionData.errors.name}</p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="email" className="block font-medium">Correu electrònic</label>
-          <input
-            type="email"
-            name="email"
-            defaultValue={user.email}
-            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {actionData?.errors?.email && (
-            <p className="text-red-500 text-sm">{actionData.errors.email}</p>
-          )}
-        </div>
+        <ProfileInput
+          id="name"
+          label="Nom"
+          name="name"
+          defaultValue={user.name}
+          error={actionData?.errors?.name}
+        />
+        <ProfileInput
+          id="email"
+          label="Correu electrònic"
+          name="email"
+          type="email"
+          defaultValue={user.email}
+          error={actionData?.errors?.email}
+        />
 
         <button
           type="submit"
@@ -102,9 +58,44 @@ export default function ProfilePage() {
         </button>
       </Form>
 
-      {!actionData?.errors && (
+      {actionData?.logout && (
         <p className="mt-4 text-green-500">Perfil actualitzat correctament!</p>
       )}
+    </div>
+  );
+}
+
+// Reusable Profile Input Component
+function ProfileInput({
+  id,
+  label,
+  name,
+  type = "text",
+  defaultValue,
+  error,
+}: {
+  id: string;
+  label: string;
+  name: string;
+  type?: string;
+  defaultValue: string;
+  error?: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="block font-medium">
+        {label}
+      </label>
+      <input
+        id={id}
+        type={type}
+        name={name}
+        defaultValue={defaultValue}
+        className={`w-full p-2 border ${
+          error ? "border-red-500" : "border-gray-300"
+        } rounded focus:ring-2 focus:ring-blue-500`}
+      />
+      {error && <p className="text-red-500 text-sm">{error}</p>}
     </div>
   );
 }

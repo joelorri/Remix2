@@ -1,8 +1,4 @@
-import { ReactNode } from "react";
-
-type AuthContainerProps = {
-  children: ReactNode;
-};
+import { AuthContainerProps } from "~/utils/Interfaces";
 
 export default function AuthContainer({ children }: AuthContainerProps) {
   return (
