@@ -135,7 +135,7 @@ export default function HomePage() {
   return (
     <div className="py-12 max-w-5xl mx-auto">
       <h1 className="text-4xl font-bold text-center mb-8">Benvingut, {user.name}</h1>
-      <div className="bg-white dark:bg-gray-900 shadow-lg rounded-lg p-6 space-y-8">
+      <div className="bg-gray-800 dark:bg-gray-900 shadow-lg rounded-lg p-6 space-y-8">
         {/* User Info Section */}
         <section>
           <h2 className="text-2xl font-semibold mb-4">Informació del perfil</h2>
@@ -199,7 +199,7 @@ export default function HomePage() {
                 <li key={profile.id}>
                   <button
                     onClick={() => handleSelectDj(profile)}
-                    className="w-full text-left bg-gray-800 p-4 rounded-lg hover:bg-gray-200"
+                    className="w-full text-left bg-gray-800 p-4 rounded-lg hover:bg-gray-600"
                   >
                     <p><strong>Nom:</strong> {profile.name}</p>
                     <p><strong>Email:</strong> {profile.email}</p>

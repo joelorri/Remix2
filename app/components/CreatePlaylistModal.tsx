@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Playlist } from "~/server/editPlaylist.server";
+import { Playlist } from "~/utils/Interfaces";
 
 
 export default function CreatePlaylistModal({

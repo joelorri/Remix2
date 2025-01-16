@@ -11,8 +11,6 @@ export interface SongRequest {
   };
 }
 
-
-
 export type User = {
   id: number;
   name: string;
@@ -124,8 +122,6 @@ export type Playlist = {
   created_at: string;
   updated_at: string;
 };
-
-
 
 export type SessionResponse = {
   success: boolean;
