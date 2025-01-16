@@ -168,7 +168,7 @@ export default function UserRatingsPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-md max-w-md w-full">
             <h2 className="text-xl font-bold mb-4">Nova Valoració</h2>
             {error && <p className="text-red-500 mb-4">{error}</p>}
             {success && (
@@ -204,7 +204,7 @@ export default function UserRatingsPage() {
                           <button
                             key={profile.id}
                             onClick={() => handleSelectDj(profile)}
-                            className="w-full text-left cursor-pointer bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-md hover:bg-gray-200 dark:hover:bg-gray-600"
+                            className="w-full text-left cursor-pointer bg-gray-800 dark:bg-gray-700 p-4 rounded-lg shadow-md hover:bg-gray-900 dark:hover:bg-gray-600"
                           >
                             <p>
                               <strong>Nom:</strong> {profile.name}
@@ -266,7 +266,7 @@ export default function UserRatingsPage() {
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                    className="px-4 py-2 bg-gray-800 rounded hover:bg-gray-900"
                   >
                     Cancel·lar
                   </button>
