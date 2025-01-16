@@ -1,0 +1,88 @@
+erDiagram
+    USERS {
+        bigint id PK
+        string name
+        string email UNIQUE
+        timestamp email_verified_at
+        string password
+        string role
+        string super
+        string image
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SESSIONS {
+        string id PK
+        bigint user_id FK
+        string ip_address
+        text user_agent
+        longtext payload
+        integer last_activity
+    }
+
+    PERFORMANCES {
+        bigint id PK
+        bigint user_id FK
+        datetime start_time
+        datetime end_time
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SONG_REQUESTS {
+        bigint id PK
+        bigint user_id FK
+        bigint dj_id FK
+        json song_details
+        text comments
+        string status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SCORES {
+        bigint id PK
+        bigint user_id FK
+        bigint dj_id FK
+        integer score
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PLAYLISTS {
+        bigint id PK
+        string name
+        text description
+        json songs
+        bigint created_by FK
+        bigint user_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    DJ_RATINGS {
+        bigint id PK
+        bigint dj_id FK
+        bigint user_id FK
+        tinyinteger rating
+        text comment
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% RELACIONS
+    USERS ||--o{ SESSIONS : "has"
+    USERS ||--o{ PASSWORD_RESET_TOKENS : "can reset password"
+    USERS ||--o{ PERFORMANCES : "can perform"
+    USERS ||--o{ SONG_REQUESTS : "makes requests"
+    USERS ||--o{ SCORES : "receives scores"
+    USERS ||--o{ PLAYLISTS : "creates"
+    USERS ||--o{ DJ_RATINGS : "receives ratings"
+    SONG_REQUESTS }o--|| USERS : "requested by"
+    SONG_REQUESTS }o--|| USERS : "assigned to (DJ)"
+    PLAYLISTS }o--|| USERS : "owned by"
+    SCORES }o--|| USERS : "rated by"
+    SCORES }o--|| USERS : "rated DJ"
+    DJ_RATINGS }o--|| USERS : "rated by"
+    DJ_RATINGS }o--|| USERS : "rating for DJ"

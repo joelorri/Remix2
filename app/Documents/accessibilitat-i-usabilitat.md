@@ -144,3 +144,7 @@ Si teniu temps, implementeu algunes de les millores proposades i repetiu el cicl
 2. Justificació de les millores implementades i beneficis obtinguts.
 
 Aquest document proporciona una guia clara per millorar l'accessibilitat i usabilitat de l'aplicació web.
+
+
+
+![alt text](image.png)
